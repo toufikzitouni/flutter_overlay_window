@@ -117,6 +117,13 @@ class FlutterOverlayWindow {
     return _res;
   }
 
+    /// Update enableDrag
+  static Future<bool?> updateDrag(bool enableDrag) async {
+    final bool? _res = await _overlayChannel
+        .invokeMethod<bool?>('updateDrag', {'enableDrag': enableDrag});
+    return _res;
+  }
+
   /// Check if the current overlay is active
   static Future<bool> isActive() async {
     final bool? _res = await _channel.invokeMethod<bool?>('isOverlayActive');

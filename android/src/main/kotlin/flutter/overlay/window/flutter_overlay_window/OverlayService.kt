@@ -128,6 +128,10 @@ class OverlayService : Service(), OnTouchListener {
                     val height = call.argument<Int>("height")!!
                     resizeOverlay(width, height, result)
                 }
+                "updateDrag" -> {
+                    val enableDrag = call.argument<Boolean>("enableDrag")!!
+                    updateDrag(enableDrag, result)
+                }
             }
         }
         overlayMessageChannel.setMessageHandler { message: Any?, _: BasicMessageChannel.Reply<Any?>? ->
@@ -213,6 +217,23 @@ class OverlayService : Service(), OnTouchListener {
             result.success(true)
         } else {
             result.success(false)
+        }
+    }
+
+    private fun updateDrag(enableDrag: Boolean, result: MethodChannel.Result) {
+        WindowSetup.enableDrag = enableDrag
+        if (!enableDrag) {
+            if (windowManager != null) {
+                val params = flutterView.layoutParams as WindowManager.LayoutParams
+                params.x = 0
+                params.y = 0
+                windowManager!!.updateViewLayout(flutterView, params)
+                result.success(true)
+            } else {
+                result.success(false)
+            }
+        } else {
+            result.success(true)
         }
     }
 
