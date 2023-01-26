@@ -1,38 +1,38 @@
 package flutter.overlay.window.flutter_overlay_window
 
-import kotlin.math.abs
-import java.util.*
-import android.util.Log
-import android.view.View
-import android.os.Build
-import android.os.IBinder
-import android.os.Handler
-import android.app.Service
-import android.graphics.Color
-import android.content.Intent
-import android.graphics.Point
-import android.content.Context
-import android.view.MotionEvent
-import android.app.PendingIntent
-import android.view.WindowManager
-import android.graphics.PixelFormat
-import android.app.NotificationManager
 import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.PixelFormat
+import android.graphics.Point
+import android.os.Build
+import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
+import android.util.Log
+import android.view.MotionEvent
+import android.view.View
 import android.view.View.OnTouchListener
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
+import com.example.flutter_overlay_window.R
 import io.flutter.FlutterInjector
+import io.flutter.embedding.android.FlutterTextureView
+import io.flutter.embedding.android.FlutterView
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.FlutterEngineCache
+import io.flutter.embedding.engine.FlutterEngineGroup
+import io.flutter.embedding.engine.dart.DartExecutor
+import io.flutter.plugin.common.BasicMessageChannel
+import io.flutter.plugin.common.JSONMessageCodec
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.JSONMessageCodec
-import io.flutter.plugin.common.BasicMessageChannel
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.android.FlutterView
-import io.flutter.embedding.engine.dart.DartExecutor
-import io.flutter.embedding.engine.FlutterEngineGroup
-import io.flutter.embedding.engine.FlutterEngineCache
-import io.flutter.embedding.android.FlutterTextureView
-import com.example.flutter_overlay_window.R
+import java.util.*
+import kotlin.math.abs
 
 class OverlayService : Service(), OnTouchListener {
     private lateinit var mContext: Context
@@ -47,6 +47,8 @@ class OverlayService : Service(), OnTouchListener {
     private val mAnimationHandler = Handler(Looper.getMainLooper())
     private var lastX = 0f
     private var lastY = 0f
+    private var firstX = 0f
+    private var firstY = 0f
     private var lastYPosition = 0
     private var dragging = false
     private val szWindow = Point()
@@ -251,6 +253,8 @@ class OverlayService : Service(), OnTouchListener {
                     dragging = false
                     lastX = event.rawX
                     lastY = event.rawY
+                    firstX = event.rawX
+                    firstY = event.rawY
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - lastX
@@ -268,6 +272,11 @@ class OverlayService : Service(), OnTouchListener {
                     dragging = true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    val dx = event.rawX - firstX
+                    val dy = event.rawY - firstY
+                    if (dx == 0f && dy == 0f) {
+                        overlayMessageChannel.send("bubbleClick", null)
+                    }
                     lastYPosition = params.y
                     if (WindowSetup.positionGravity !== "none") {
                         windowManager!!.updateViewLayout(flutterView, params)
